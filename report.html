@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentinella — Campus Report</title>
+<style>
+  :root{
+    --bg: #050E07;
+    --surface: #0F1F14;
+    --surface-2: #14281C;
+    --line: rgba(34, 197, 94, 0.18);
+    --amber: #22C55E;
+    --amber-dim: #16A34A;
+    --text: #F5F5F5;
+    --muted: #9CA3AF;
+    --danger: #EF4444;
+    --success: #4ADE80;
+    --radius: 14px;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin:0; padding:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+  }
+
+  body{
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding: 48px 20px 80px;
+    background:
+      radial-gradient(ellipse 700px 420px at 50% 0%, rgba(34,197,94,0.16), transparent 70%),
+      var(--bg);
+  }
+
+  .kiosk{
+    width:100%;
+    max-width: 560px;
+  }
+
+  .beacon-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom: 18px;
+  }
+
+  .beacon{
+    width:10px; height:10px; border-radius:50%;
+    background: var(--amber);
+    box-shadow: 0 0 0 0 rgba(34,197,94,0.6);
+    animation: pulse 2.4s infinite;
+    flex-shrink:0;
+  }
+
+  @keyframes pulse{
+    0%   { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
+    70%  { box-shadow: 0 0 0 10px rgba(34,197,94,0); }
+    100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+  }
+
+  .beacon-label{
+    font-family:'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  h1{
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+  }
+
+  .sub{
+    color: var(--muted);
+    font-size: 14.5px;
+    line-height: 1.5;
+    margin: 0 0 32px;
+    max-width: 46ch;
+  }
+
+  form{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px;
+    display:flex;
+    flex-direction:column;
+    gap: 20px;
+  }
+
+  .field label{
+    display:block;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  input[type="text"], textarea, select{
+    width:100%;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14.5px;
+    resize: vertical;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+
+  input[type="text"]::placeholder, textarea::placeholder{
+    color: #6B759A;
+  }
+
+  input[type="text"]:focus, textarea:focus, select:focus{
+    outline: none;
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.18);
+  }
+
+  textarea{ min-height: 96px; }
+
+  .type-toggle{
+    display:flex;
+    gap: 8px;
+  }
+
+  .type-toggle input{ display:none; }
+
+  .type-toggle label{
+    flex:1;
+    text-align:center;
+    padding: 10px 8px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    color: var(--muted);
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor:pointer;
+    transition: all .15s ease;
+    margin:0;
+  }
+
+  .type-toggle input:checked + label{
+    background: rgba(34,197,94,0.14);
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+
+  .dropzone{
+    border: 1.5px dashed var(--line);
+    border-radius: 9px;
+    background: var(--surface-2);
+    padding: 18px;
+    text-align:center;
+    cursor:pointer;
+    transition: border-color .15s ease;
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+
+  .dropzone:hover{ border-color: var(--amber); }
+  .dropzone.has-file{ border-color: var(--success); color: var(--text); }
+  .dropzone input{ display:none; }
+
+  .hint{
+    font-size: 12px;
+    color: #6B759A;
+    margin-top: 6px;
+  }
+
+  button[type="submit"]{
+    margin-top: 6px;
+    background: linear-gradient(90deg, var(--amber), var(--amber-dim));
+    color: #04210D;
+    border: none;
+    border-radius: 9px;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    cursor:pointer;
+    transition: filter .15s ease, transform .05s ease;
+  }
+
+  button[type="submit"]:hover{ filter: brightness(1.08); }
+  button[type="submit"]:active{ transform: scale(0.995); }
+  button[type="submit"]:disabled{ opacity: 0.6; cursor: not-allowed; }
+
+  .status{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    font-family:'IBM Plex Mono', Consolas, monospace;
+    font-size: 12.5px;
+    padding: 12px 14px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    display:none;
+  }
+
+  .status.show{ display:flex; }
+  .status .dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .status.sending .dot{ background: var(--amber); animation: pulse 1s infinite; }
+  .status.ok .dot{ background: var(--success); box-shadow:none; animation:none; }
+  .status.err .dot{ background: var(--danger); box-shadow:none; animation:none; }
+  .status.ok{ color: var(--success); border-color: rgba(76,175,135,0.4); }
+  .status.err{ color: var(--danger); border-color: rgba(232,85,90,0.4); }
+  .status.sending{ color: var(--muted); }
+
+  footer{
+    margin-top: 18px;
+    text-align:center;
+    color: #565F82;
+    font-size: 11.5px;
+    font-family:'IBM Plex Mono', Consolas, monospace;
+  }
+</style>
+</head>
+<body>
+
+<div class="kiosk">
+
+  <div class="beacon-row">
+    <span class="beacon"></span>
+    <span class="beacon-label">Sentinella · campus watch</span>
+  </div>
+
+  <h1>Report what you see</h1>
+  <p class="sub">Long queue, broken light, blocked path — flag it and it goes straight to the campus monitoring desk.</p>
+
+  <form id="reportForm">
+
+    <div class="field">
+      <label for="location">Location</label>
+      <input type="text" id="location" name="location" placeholder="e.g. Faculty of Law Gate" required>
+    </div>
+
+    <div class="field">
+      <label>Report type</label>
+      <div class="type-toggle">
+        <input type="radio" id="type-queue" name="report_type_hint" value="queue" checked>
+        <label for="type-queue">Queue</label>
+
+        <input type="radio" id="type-safety" name="report_type_hint" value="safety">
+        <label for="type-safety">Safety</label>
+
+        <input type="radio" id="type-other" name="report_type_hint" value="other">
+        <label for="type-other">Other</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="student_message">What's happening</label>
+      <textarea id="student_message" name="student_message" placeholder="Describe the queue, hazard, or issue…" required></textarea>
+    </div>
+
+    <div class="field">
+      <label for="photo">Photo (optional)</label>
+      <div class="dropzone" id="dropzone">
+        <span id="dropzoneText">Tap to attach a photo</span>
+      </div>
+      <input type="file" id="photo" name="photo" accept="image/*" style="display:none">
+      <div class="hint">Attaching a photo lets the campus desk verify the scene at a glance.</div>
+    </div>
+
+    <button type="submit" id="submitBtn">Send report</button>
+
+    <div class="status" id="status">
+      <span class="dot"></span>
+      <span id="statusText"></span>
+    </div>
+
+  </form>
+
+  <footer>POST → primary-production-2c2a.up.railway.app/webhook/sentinella</footer>
+</div>
+
+<script>
+  const WEBHOOK_URL = "https://primary-production-2c2a.up.railway.app/webhook/sentinella";
+
+  const form = document.getElementById('reportForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const statusEl = document.getElementById('status');
+  const statusText = document.getElementById('statusText');
+  const dropzone = document.getElementById('dropzone');
+  const dropzoneText = document.getElementById('dropzoneText');
+  const photoInput = document.getElementById('photo');
+
+  let photoBase64 = null;
+
+  dropzone.addEventListener('click', () => photoInput.click());
+
+  photoInput.addEventListener('change', () => {
+    const file = photoInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      photoBase64 = reader.result; // data:<mime>;base64,<data>
+      dropzone.classList.add('has-file');
+      dropzoneText.textContent = `Attached: ${file.name}`;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function setStatus(mode, text){
+    statusEl.className = 'status show ' + mode;
+    statusText.textContent = text;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const location = document.getElementById('location').value.trim();
+    const student_message = document.getElementById('student_message').value.trim();
+    const report_type_hint = form.querySelector('input[name="report_type_hint"]:checked').value;
+
+    if (!location || !student_message) return;
+
+    const payload = {
+      location,
+      student_message,
+      // The campus-desk workflow generates gemma_analysis server-side (it needs
+      // the vision model + API key, which can't live safely in the browser).
+      // We still send a placeholder so the shape matches the existing schema.
+      gemma_analysis: "Pending automated analysis.",
+      report_type_hint,
+      timestamp: new Date().toISOString()
+    };
+
+    if (photoBase64) {
+      payload.image_base64 = photoBase64;
+    }
+
+    submitBtn.disabled = true;
+    setStatus('sending', 'Sending report…');
+
+    try {
+      const response = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        setStatus('ok', 'Report sent. Thanks for flagging this.');
+        form.reset();
+        photoBase64 = null;
+        dropzone.classList.remove('has-file');
+        dropzoneText.textContent = 'Tap to attach a photo';
+      } else {
+        setStatus('err', `Webhook responded with ${response.status}. Try again.`);
+      }
+    } catch (err) {
+      setStatus('err', 'Could not reach the webhook. Check your connection.');
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sentinella — AI-Powered Campus Intelligence</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#0A2E1A',
+            accent: '#22C55E',
+            warning: '#F97316',
+            danger: '#EF4444',
+            bgdark: '#050E07',
+            card: '#0F1F14',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+          },
+        },
+      },
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #050E07; color: #F5F5F5; font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; }
+
+    /* Animated gradient bg */
+    .hero-glow {
+      position: absolute; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(34,197,94,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 20% 50%, rgba(34,197,94,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 30% at 80% 60%, rgba(34,197,94,0.05) 0%, transparent 60%);
+      animation: glowPulse 8s ease-in-out infinite alternate;
+    }
+    @keyframes glowPulse {
+      0% { opacity: 0.6; transform: scale(1); }
+      100% { opacity: 1; transform: scale(1.05); }
+    }
+
+    /* Floating particles */
+    .particle {
+      position: absolute; border-radius: 50%; pointer-events: none;
+      background: rgba(34,197,94,0.3); filter: blur(1px);
+      animation: float linear infinite;
+    }
+    @keyframes float {
+      0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* Scroll reveal */
+    .reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    /* Glow border card */
+    .glow-card {
+      position: relative; background: #0F1F14; border-radius: 16px;
+      border: 1px solid rgba(34,197,94,0.1);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .glow-card:hover {
+      border-color: rgba(34,197,94,0.3);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 40px rgba(34,197,94,0.1), 0 0 80px rgba(34,197,94,0.05);
+    }
+
+    /* CTA button glow */
+    .cta-glow {
+      position: relative; overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .cta-glow::before {
+      content: ''; position: absolute; inset: -2px;
+      background: linear-gradient(135deg, #22C55E, #16A34A, #22C55E);
+      border-radius: inherit; z-index: -1;
+      filter: blur(8px); opacity: 0; transition: opacity 0.3s ease;
+    }
+    .cta-glow:hover::before { opacity: 0.6; }
+    .cta-glow:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(34,197,94,0.3); }
+    .cta-glow:active { transform: translateY(0); }
+
+    /* Nav glass */
+    .nav-glass {
+      background: rgba(5,14,7,0.7); backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(34,197,94,0.08);
+      transition: all 0.3s ease;
+    }
+    .nav-glass.scrolled {
+      background: rgba(5,14,7,0.92); border-bottom-color: rgba(34,197,94,0.15);
+    }
+
+    /* Step connector line */
+    .step-connector {
+      position: relative;
+    }
+    .step-connector::after {
+      content: ''; position: absolute; top: 50%; right: -2rem;
+      width: 2rem; height: 2px;
+      background: linear-gradient(90deg, #22C55E, transparent);
+    }
+
+    /* Stat counter animation */
+    .stat-number { font-variant-numeric: tabular-nums; }
+
+    /* Flow diagram */
+    .flow-line {
+      height: 2px; background: linear-gradient(90deg, #22C55E, rgba(34,197,94,0.3));
+      animation: flowPulse 2s ease-in-out infinite;
+    }
+    @keyframes flowPulse {
+      0%, 100% { opacity: 0.4; } 50% { opacity: 1; }
+    }
+
+    /* Campus silhouette */
+    .campus-silhouette {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 200px;
+      background: linear-gradient(to top, #050E07, transparent);
+      z-index: 1;
+    }
+
+    /* Scroll indicator */
+    .scroll-bounce {
+      animation: scrollBounce 2s ease-in-out infinite;
+    }
+    @keyframes scrollBounce {
+      0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); }
+    }
+
+    /* Smooth scrolling */
+    html { scroll-behavior: smooth; }
+
+    /* Typing animation for hero */
+    .typing-cursor::after {
+      content: '|'; animation: blink 1s step-end infinite; color: #22C55E;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* Mobile menu */
+    .mobile-menu {
+      max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mobile-menu.open { max-height: 400px; }
+
+    /* How it works card pulse */
+    .flow-node {
+      animation: nodePulse 3s ease-in-out infinite;
+    }
+    .flow-node:nth-child(2) { animation-delay: 0.5s; }
+    .flow-node:nth-child(3) { animation-delay: 1s; }
+    @keyframes nodePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.2); }
+      50% { box-shadow: 0 0 20px 4px rgba(34,197,94,0.15); }
+    }
+  </style>
+</head>
+<body>    <!-- Skip to content -->
+  <a href="#hero" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60] focus:px-4 focus:py-2 focus:bg-accent focus:text-primary focus:rounded-lg focus:font-semibold">Skip to content</a>
+
+  <!-- ========== NAVIGATION ========== -->
+  <nav id="navbar" aria-label="Main navigation" class="nav-glass fixed top-0 left-0 right-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3 group">
+        <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+        <span class="text-xl font-bold text-white group-hover:text-accent transition-colors">
+          Sentinella
+        </span>
+      </a>
+      <!-- Desktop Nav -->
+      <div class="hidden md:flex items-center gap-8">
+        <a href="#problems" class="text-sm text-gray-400 hover:text-accent transition-colors duration-200">Problem</a>
+        <a href="#solution" class="text-sm text-gray-400 hover:text-accent transition-colors duration-200">Solution</a>
+        <a href="#how-it-works" class="text-sm text-gray-400 hover:text-accent transition-colors duration-200">How It Works</a>
+        <a href="#faq" class="text-sm text-gray-400 hover:text-accent transition-colors duration-200">FAQ</a>
+        <a href="dashboard.html"
+           class="px-4 py-2 text-sm font-medium text-accent border border-accent/30 rounded-lg hover:bg-accent/10 transition-all duration-200">
+          Live Dashboard
+        </a>
+        <a href="./report.html"
+           class="cta-glow px-5 py-2.5 text-sm font-semibold bg-accent text-primary rounded-lg">
+          Report Now
+        </a>
+      </div>
+      <!-- Mobile Hamburger -->
+      <button id="menuToggle" class="md:hidden text-gray-400 hover:text-white transition-colors" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobileMenu" aria-haspopup="true">
+        <svg id="menuIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <svg id="closeIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="mobile-menu md:hidden border-t border-accent/10">
+      <div class="px-6 py-4 flex flex-col gap-4">
+        <a href="#problems" class="text-gray-400 hover:text-accent transition-colors py-2">Problem</a>
+        <a href="#solution" class="text-gray-400 hover:text-accent transition-colors py-2">Solution</a>
+        <a href="#how-it-works" class="text-gray-400 hover:text-accent transition-colors py-2">How It Works</a>
+        <a href="#faq" class="text-gray-400 hover:text-accent transition-colors py-2">FAQ</a>
+        <a href="dashboard.html" class="text-accent border border-accent/30 rounded-lg py-2 text-center hover:bg-accent/10 transition-all">Live Dashboard</a>
+        <a href="./report.html" class="bg-accent text-primary font-semibold rounded-lg py-3 text-center hover:opacity-90 transition-opacity">Report Now</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========== HERO SECTION ========== -->
+  <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+    <div class="hero-glow"></div>
+    <!-- Floating particles -->
+    <div id="particles" class="absolute inset-0 z-0"></div>
+
+    <div class="relative z-10 max-w-5xl mx-auto px-6 text-center">
+      <!-- Badge -->
+      <div class="reveal inline-flex items-center gap-2 px-4 py-2 rounded-full border border-accent/20 bg-accent/5 mb-8">
+        <span class="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+        <span class="text-sm text-accent/90 font-medium">Powered by Gemma 4 &bull; Built for 40,000 Students</span>
+      </div>
+
+      <!-- Headline -->
+      <h1 class="reveal reveal-delay-1 text-5xl md:text-7xl lg:text-8xl font-black leading-[0.95] tracking-tight mb-6">
+        <span class="text-white">Your Campus.</span><br />
+        <span class="bg-gradient-to-r from-accent via-emerald-400 to-green-300 bg-clip-text text-transparent">
+          Intelligently Watched.
+        </span>
+      </h1>
+
+      <!-- Subheadline -->
+      <p class="reveal reveal-delay-2 text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+        Sentinella is an AI-powered campus intelligence system built for Unilorin students.
+        Report queues, safety hazards, and infrastructure issues — <span class="text-white font-medium">in seconds.</span>
+      </p>
+
+      <!-- CTAs -->
+      <div class="reveal reveal-delay-3 flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+        <a href="./report.html"
+           class="cta-glow group flex items-center gap-2 px-8 py-4 bg-accent text-primary font-bold text-lg rounded-xl">
+          Report Now
+          <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
+        <a href="dashboard.html"
+           class="group flex items-center gap-2 px-8 py-4 border border-white/10 text-white font-semibold text-lg rounded-xl hover:bg-white/5 hover:border-white/20 transition-all duration-300">
+          <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+          See Live Status
+        </a>
+      </div>
+
+      <!-- Stats ticker -->
+      <div class="reveal reveal-delay-3 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
+        <div class="text-center">
+          <div class="text-3xl md:text-4xl font-black text-white stat-number">40,000</div>
+          <div class="text-sm text-gray-500 mt-1">Students Served</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl md:text-4xl font-black text-accent stat-number">&lt;30s</div>
+          <div class="text-sm text-gray-500 mt-1">Response Time</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl md:text-4xl font-black text-white stat-number">0</div>
+          <div class="text-sm text-gray-500 mt-1">Cloud Dependencies</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl md:text-4xl font-black text-white stat-number">2</div>
+          <div class="text-sm text-gray-500 mt-1">Report Types</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 scroll-bounce">
+      <svg class="w-6 h-6 text-accent/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+      </svg>
+    </div>
+
+    <div class="campus-silhouette"></div>
+  </section>
+
+  <!-- ========== PROBLEM SECTION ========== -->
+  <section id="problems" class="relative py-24 md:py-32">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <div class="reveal inline-flex items-center gap-2 px-3 py-1 rounded-full border border-red-500/20 bg-red-500/5 mb-6">
+          <span class="text-xs text-red-400 font-medium uppercase tracking-wider">The Problem</span>
+        </div>
+        <h2 class="reveal reveal-delay-1 text-4xl md:text-5xl font-black text-white mb-4">
+          The Daily <span class="text-red-400">Unilorin</span> Struggle
+        </h2>
+        <p class="reveal reveal-delay-2 text-gray-400 max-w-xl mx-auto text-lg">
+          Every day, 40,000 students face the same invisible problems with no solution in sight.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6">
+        <!-- Card 1: Queue Crisis -->
+        <div class="reveal glow-card p-8 group">
+          <div class="mb-6 group-hover:scale-110 transition-transform duration-300"><svg class="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+          <h3 class="text-xl font-bold text-white mb-3">Queue Crisis</h3>
+          <p class="text-gray-400 leading-relaxed">
+            Students spend <span class="text-red-400 font-semibold">1–3 hours daily</span> waiting for shuttles with no way to know if the queue is long before leaving their hostel.
+          </p>
+          <div class="mt-6 pt-4 border-t border-white/5">
+            <div class="flex items-center gap-2 text-sm text-red-400/80">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              3 hours wasted daily per student
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Safety Hazards -->
+        <div class="reveal reveal-delay-1 glow-card p-8 group">
+          <div class="mb-6 group-hover:scale-110 transition-transform duration-300"><svg class="w-12 h-12 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
+          <h3 class="text-xl font-bold text-white mb-3">Safety Hazards</h3>
+          <p class="text-gray-400 leading-relaxed">
+            Broken infrastructure, flooded paths, and faulty equipment go <span class="text-orange-400 font-semibold">unreported for days</span> because there is no easy reporting channel.
+          </p>
+          <div class="mt-6 pt-4 border-t border-white/5">
+            <div class="flex items-center gap-2 text-sm text-orange-400/80">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Zero automated reporting system
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: No Real-Time Data -->
+        <div class="reveal reveal-delay-2 glow-card p-8 group">
+          <div class="mb-6 group-hover:scale-110 transition-transform duration-300"><svg class="w-12 h-12 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+          <h3 class="text-xl font-bold text-white mb-3">No Real-Time Data</h3>
+          <p class="text-gray-400 leading-relaxed">
+            Campus authorities have <span class="text-accent font-semibold">no visibility</span> into student movement patterns or recurring infrastructure failures.
+          </p>
+          <div class="mt-6 pt-4 border-t border-white/5">
+            <div class="flex items-center gap-2 text-sm text-accent/80">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Decisions made without data
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SOLUTION SECTION ========== -->
+  <section id="solution" class="relative py-24 md:py-32">
+    <!-- Subtle divider -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent"></div>
+
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <div class="reveal inline-flex items-center gap-2 px-3 py-1 rounded-full border border-accent/20 bg-accent/5 mb-6">
+          <span class="text-xs text-accent font-medium uppercase tracking-wider">The Solution</span>
+        </div>
+        <h2 class="reveal reveal-delay-1 text-4xl md:text-5xl font-black text-white mb-4">
+          One Bot. <span class="text-accent">Every Problem Solved.</span>
+        </h2>
+        <p class="reveal reveal-delay-2 text-gray-400 max-w-xl mx-auto text-lg">
+          From report to action in under 30 seconds. No app download. No registration. Just message.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        <!-- Step 1 -->
+        <div class="reveal text-center md:text-left">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 mb-6 group-hover:scale-110 transition-transform">
+            <span class="text-2xl font-black text-accent">1</span>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-3">Message the Bot</h3>
+          <p class="text-gray-400 leading-relaxed">
+            Open Telegram. Message <span class="text-accent font-medium">@SentinellaBot</span> with your report or photo. That's it.
+          </p>
+          <div class="mt-4 flex items-center gap-2 justify-center md:justify-start text-sm text-gray-500">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            No app download needed
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="reveal reveal-delay-1 text-center md:text-left">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 mb-6">
+            <span class="text-2xl font-black text-accent">2</span>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-3">Gemma 4 Analyzes</h3>
+          <p class="text-gray-400 leading-relaxed">
+            Our on-device AI powered by <span class="text-accent font-medium">Google's Gemma 4</span> reads your report, classifies it, and extracts key details instantly.
+          </p>
+          <div class="mt-4 flex items-center gap-2 justify-center md:justify-start text-sm text-gray-500">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            On-device AI — no cloud
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="reveal reveal-delay-2 text-center md:text-left">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 mb-6">
+            <span class="text-2xl font-black text-accent">3</span>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-3">Action Happens</h3>
+          <p class="text-gray-400 leading-relaxed">
+            Queue alerts go to <span class="text-accent font-medium">40,000 students</span>. Safety reports go directly to campus authorities. All automated.
+          </p>
+          <div class="mt-4 flex items-center gap-2 justify-center md:justify-start text-sm text-gray-500">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            Fully automated workflow
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== HOW IT WORKS SECTION ========== -->
+  <section id="how-it-works" class="relative py-24 md:py-32">
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent"></div>
+
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <div class="reveal inline-flex items-center gap-2 px-3 py-1 rounded-full border border-accent/20 bg-accent/5 mb-6">
+          <span class="text-xs text-accent font-medium uppercase tracking-wider">Architecture</span>
+        </div>
+        <h2 class="reveal reveal-delay-1 text-4xl md:text-5xl font-black text-white mb-4">
+          How It <span class="text-accent">Works</span>
+        </h2>
+        <p class="reveal reveal-delay-2 text-gray-400 max-w-xl mx-auto text-lg">
+          A fully automated pipeline from student report to campus-wide action.
+        </p>
+      </div>
+
+      <!-- Flow Diagram -->
+      <div class="reveal reveal-delay-1 relative">
+        <!-- Main flow -->
+        <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-0 mb-12">
+          <!-- Student -->
+          <div class="flow-node flex flex-col items-center gap-2 px-6 py-5 rounded-xl bg-card border border-accent/15 min-w-[140px]">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            <span class="text-sm font-semibold text-white">Student</span>
+          </div>
+          <div class="hidden md:block flow-line w-12"></div>
+          <div class="md:hidden flow-line w-0.5 h-8" style="background: linear-gradient(to bottom, #22C55E, rgba(34,197,94,0.3));"></div>
+
+          <!-- Telegram Bot -->
+          <div class="flow-node flex flex-col items-center gap-2 px-6 py-5 rounded-xl bg-card border border-accent/15 min-w-[140px]">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+            <span class="text-sm font-semibold text-white">Telegram Bot</span>
+          </div>
+          <div class="hidden md:block flow-line w-12"></div>
+          <div class="md:hidden flow-line w-0.5 h-8" style="background: linear-gradient(to bottom, #22C55E, rgba(34,197,94,0.3));"></div>
+
+          <!-- n8n -->
+          <div class="flow-node flex flex-col items-center gap-2 px-6 py-5 rounded-xl bg-card border border-accent/15 min-w-[140px]">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span class="text-sm font-semibold text-white">n8n Workflow</span>
+          </div>
+          <div class="hidden md:block flow-line w-12"></div>
+          <div class="md:hidden flow-line w-0.5 h-8" style="background: linear-gradient(to bottom, #22C55E, rgba(34,197,94,0.3));"></div>
+
+          <!-- Gemma 4 -->
+          <div class="flow-node flex flex-col items-center gap-2 px-6 py-5 rounded-xl bg-accent/10 border border-accent/30 min-w-[140px]">
+            <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+            <span class="text-sm font-semibold text-accent">Gemma 4</span>
+          </div>
+        </div>
+
+        <!-- Branching outputs -->
+        <div class="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+          <!-- Queue Branch -->
+          <div class="reveal glow-card p-6 border-l-4 border-l-accent">
+            <div class="flex items-center gap-3 mb-4">
+              <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <h4 class="font-bold text-white">Queue Branch</h4>
+            </div>
+            <ul class="space-y-2 text-sm text-gray-400">
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Historical data analysis
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Queue prediction (30-min window)
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Student alert to 40,000 users
+              </li>
+            </ul>
+          </div>
+
+          <!-- Safety Branch -->
+          <div class="reveal reveal-delay-1 glow-card p-6 border-l-4 border-l-orange-400">
+            <div class="flex items-center gap-3 mb-4">
+              <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              <h4 class="font-bold text-white">Safety Branch</h4>
+            </div>
+            <ul class="space-y-2 text-sm text-gray-400">
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-orange-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Severity assessment
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-orange-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Authority email notification
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-orange-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Incident log &amp; tracking
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FAQ SECTION ========== -->
+  <section id="faq" class="relative py-24 md:py-32">
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent"></div>
+
+    <div class="max-w-3xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <div class="reveal inline-flex items-center gap-2 px-3 py-1 rounded-full border border-accent/20 bg-accent/5 mb-6">
+          <span class="text-xs text-accent font-medium uppercase tracking-wider">FAQ</span>
+        </div>
+        <h2 class="reveal reveal-delay-1 text-4xl md:text-5xl font-black text-white mb-4">
+          Frequently Asked <span class="text-accent">Questions</span>
+        </h2>
+      </div>
+
+      <div class="space-y-4">
+        <!-- FAQ Item 1 -->
+        <div class="reveal glow-card overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left group" aria-expanded="false">
+            <span class="font-semibold text-white group-hover:text-accent transition-colors">Is Sentinella free to use?</span>
+            <svg class="faq-arrow w-5 h-5 text-accent/60 transition-transform duration-300 shrink-0 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div class="faq-content px-6 text-gray-400 leading-relaxed" style="max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.16,1,0.3,1), padding 0.4s; padding-top: 0; padding-bottom: 0;">
+            <div class="py-4">Yes. Completely free for all Unilorin students. No registration required.</div>
+          </div>
+        </div>
+
+        <!-- FAQ Item 2 -->
+        <div class="reveal reveal-delay-1 glow-card overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left group" aria-expanded="false">
+            <span class="font-semibold text-white group-hover:text-accent transition-colors">Do I need to download an app?</span>
+            <svg class="faq-arrow w-5 h-5 text-accent/60 transition-transform duration-300 shrink-0 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div class="faq-content px-6 text-gray-400 leading-relaxed" style="max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.16,1,0.3,1), padding 0.4s; padding-top: 0; padding-bottom: 0;">
+            <div class="py-4">No. Sentinella works through Telegram which most students already have. You can also use our website.</div>
+          </div>
+        </div>
+
+        <!-- FAQ Item 3 -->
+        <div class="reveal reveal-delay-2 glow-card overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left group" aria-expanded="false">
+            <span class="font-semibold text-white group-hover:text-accent transition-colors">How does Gemma 4 analyze my report?</span>
+            <svg class="faq-arrow w-5 h-5 text-accent/60 transition-transform duration-300 shrink-0 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div class="faq-content px-6 text-gray-400 leading-relaxed" style="max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.16,1,0.3,1), padding 0.4s; padding-top: 0; padding-bottom: 0;">
+            <div class="py-4">When you submit a report, Gemma 4 — Google DeepMind's open AI model — reads your message, classifies the type of issue, extracts the location and severity, and decides what action to take. All of this happens on our local machine in under 5 seconds.</div>
+          </div>
+        </div>
+
+        <!-- FAQ Item 4 -->
+        <div class="reveal glow-card overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left group" aria-expanded="false">
+            <span class="font-semibold text-white group-hover:text-accent transition-colors">Does Sentinella run on the cloud?</span>
+            <svg class="faq-arrow w-5 h-5 text-accent/60 transition-transform duration-300 shrink-0 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div class="faq-content px-6 text-gray-400 leading-relaxed" style="max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.16,1,0.3,1), padding 0.4s; padding-top: 0; padding-bottom: 0;">
+            <div class="py-4">No. Sentinella runs entirely on-device using Gemma 4 via Ollama. No data leaves our local system. No cloud subscription needed.</div>
+          </div>
+        </div>
+
+        <!-- FAQ Item 5 -->
+        <div class="reveal reveal-delay-1 glow-card overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left group" aria-expanded="false">
+            <span class="font-semibold text-white group-hover:text-accent transition-colors">What happens when I submit a queue report?</span>
+            <svg class="faq-arrow w-5 h-5 text-accent/60 transition-transform duration-300 shrink-0 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div class="faq-content px-6 text-gray-400 leading-relaxed" style="max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.16,1,0.3,1), padding 0.4s; padding-top: 0; padding-bottom: 0;">
+            <div class="py-4">Gemma 4 analyzes it, checks historical queue data for that location, predicts how the queue will change in the next 30 minutes, and sends an alert to the Sentinella student Telegram group automatically.</div>
+          </div>
+        </div>
+
+        <!-- FAQ Item 6 -->
+        <div class="reveal reveal-delay-2 glow-card overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left group" aria-expanded="false">
+            <span class="font-semibold text-white group-hover:text-accent transition-colors">What happens when I submit a safety report?</span>
+            <svg class="faq-arrow w-5 h-5 text-accent/60 transition-transform duration-300 shrink-0 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div class="faq-content px-6 text-gray-400 leading-relaxed" style="max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.16,1,0.3,1), padding 0.4s; padding-top: 0; padding-bottom: 0;">
+            <div class="py-4">Gemma 4 assesses the severity, generates a structured incident report, and automatically emails the relevant campus authority. The incident is logged and tracked until resolved.</div>
+          </div>
+        </div>
+
+        <!-- FAQ Item 7 -->
+        <div class="reveal glow-card overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left group" aria-expanded="false">
+            <span class="font-semibold text-white group-hover:text-accent transition-colors">Can I report anonymously?</span>
+            <svg class="faq-arrow w-5 h-5 text-accent/60 transition-transform duration-300 shrink-0 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div class="faq-content px-6 text-gray-400 leading-relaxed" style="max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.16,1,0.3,1), padding 0.4s; padding-top: 0; padding-bottom: 0;">
+            <div class="py-4">Yes. Sentinella does not store your name or personal information. Only your report content and location are processed.</div>
+          </div>
+        </div>
+
+        <!-- FAQ Item 8 -->
+        <div class="reveal reveal-delay-1 glow-card overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left group" aria-expanded="false">
+            <span class="font-semibold text-white group-hover:text-accent transition-colors">What locations does Sentinella cover?</span>
+            <svg class="faq-arrow w-5 h-5 text-accent/60 transition-transform duration-300 shrink-0 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div class="faq-content px-6 text-gray-400 leading-relaxed" style="max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.16,1,0.3,1), padding 0.4s; padding-top: 0; padding-bottom: 0;">
+            <div class="py-4">Currently: Main Gate, Faculty of Law Gate, Tanke Junction, Student Hostel Area, CBT Centre, Senate Building, and Sports Complex. More locations added based on student demand.</div>
+          </div>
+        </div>
+
+        <!-- FAQ Item 9 -->
+        <div class="reveal reveal-delay-2 glow-card overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left group" aria-expanded="false">
+            <span class="font-semibold text-white group-hover:text-accent transition-colors">Will Sentinella expand beyond Unilorin?</span>
+            <svg class="faq-arrow w-5 h-5 text-accent/60 transition-transform duration-300 shrink-0 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div class="faq-content px-6 text-gray-400 leading-relaxed" style="max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.16,1,0.3,1), padding 0.4s; padding-top: 0; padding-bottom: 0;">
+            <div class="py-4">Sentinella is built as a replicable model. Any university can deploy their own instance using our open-source code on GitHub.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CTA SECTION ========== -->
+  <section class="relative py-24 md:py-32">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <div class="reveal relative rounded-3xl border border-accent/20 bg-gradient-to-b from-accent/5 to-transparent p-12 md:p-16 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-accent/5"></div>
+        <div class="relative z-10">
+          <div class="mb-6"><svg class="w-14 h-14 text-accent mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></div>
+          <h2 class="text-3xl md:text-4xl font-black text-white mb-4">
+            Ready to Fix Campus?
+          </h2>
+          <p class="text-gray-400 max-w-lg mx-auto mb-8 text-lg">
+            Join 40,000 Unilorin students already using AI to make campus smarter and safer.
+          </p>
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="./report.html"
+               class="cta-glow group flex items-center gap-2 px-8 py-4 bg-accent text-primary font-bold text-lg rounded-xl">
+              Start Reporting
+              <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </a>
+            <a href="dashboard.html"
+               class="flex items-center gap-2 px-8 py-4 border border-white/10 text-white font-semibold rounded-xl hover:bg-white/5 transition-all">
+              <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              Live Dashboard
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="border-t border-white/5 py-12">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="grid md:grid-cols-3 gap-8 mb-8">
+        <!-- Brand -->
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            <span class="text-lg font-bold text-white">Sentinella</span>
+          </div>
+          <p class="text-sm text-gray-500 leading-relaxed">
+            AI-powered campus intelligence for University of Ilorin students. Built with Gemma 4 + n8n.
+          </p>
+        </div>
+
+        <!-- Links -->
+        <div>
+          <h4 class="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Quick Links</h4>
+          <div class="flex flex-col gap-2">
+            <a href="./report.html" class="text-sm text-gray-500 hover:text-accent transition-colors">Submit Report</a>
+            <a href="dashboard.html" class="text-sm text-gray-500 hover:text-accent transition-colors">Live Dashboard</a>
+            <a href="#faq" class="text-sm text-gray-500 hover:text-accent transition-colors">FAQ</a>
+            <a href="#how-it-works" class="text-sm text-gray-500 hover:text-accent transition-colors">How It Works</a>
+          </div>
+        </div>
+
+        <!-- Connect -->
+        <div>
+          <h4 class="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Connect</h4>
+          <div class="flex flex-col gap-2">
+            <a href="#" class="text-sm text-gray-500 hover:text-accent transition-colors flex items-center gap-2">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.332-1.756-1.332-1.756-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.835 2.807 1.305 3.492.998.108-.776.42-1.305.762-1.605-2.665-.305-5.467-1.334-5.467-5.93 0-1.31.468-2.382 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.838 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.605-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>
+              GitHub
+            </a>
+            <a href="#" class="text-sm text-gray-500 hover:text-accent transition-colors flex items-center gap-2">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0h-.056zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.492-1.302.48-.428-.013-1.252-.242-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+              Telegram Bot
+            </a>
+            <a href="#" class="text-sm text-gray-500 hover:text-accent transition-colors flex items-center gap-2">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+              Kaggle
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom -->
+      <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+        <p class="text-sm text-gray-600">
+          Built at <span class="text-gray-400">GDGoC Unilorin Hackathon 2026</span> &bull; Powered by Gemma 4 + n8n
+        </p>
+        <div class="flex items-center gap-2 text-xs text-gray-600">
+          <span class="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+          Open Source on GitHub
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========== SCRIPTS ========== -->
+  <script>
+    // ---- Particles ----
+    (function initParticles() {
+      const container = document.getElementById('particles');
+      if (!container) return;
+      const count = window.innerWidth < 768 ? 12 : 25;
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.random() * 4 + 2;
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+        p.style.animationDelay = (Math.random() * 10) + 's';
+        container.appendChild(p);
+      }
+    })();
+
+    // ---- Scroll reveal ----
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // ---- Navbar scroll effect ----
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 50);
+    }, { passive: true });
+
+    // ---- Mobile menu toggle ----
+    const menuToggle = document.getElementById('menuToggle');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const menuIcon = document.getElementById('menuIcon');
+    const closeIcon = document.getElementById('closeIcon');
+
+    menuToggle.addEventListener('click', () => {
+      const isOpen = mobileMenu.classList.toggle('open');
+      menuIcon.classList.toggle('hidden', isOpen);
+      closeIcon.classList.toggle('hidden', !isOpen);
+    });
+
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.remove('open');
+        menuIcon.classList.remove('hidden');
+        closeIcon.classList.add('hidden');
+      });
+    });
+
+    // ---- FAQ toggle ----
+    function toggleFaq(btn) {
+      const content = btn.nextElementSibling;
+      const arrow = btn.querySelector('.faq-arrow');
+      const inner = content.querySelector('div');
+      const isOpen = btn.getAttribute('aria-expanded') === 'true';
+
+      // Close all others
+      document.querySelectorAll('button[aria-expanded]').forEach(b => {
+        if (b !== btn) {
+          b.setAttribute('aria-expanded', 'false');
+          const c = b.nextElementSibling;
+          if (c) { c.style.maxHeight = '0'; c.style.paddingTop = '0'; c.style.paddingBottom = '0'; }
+          const a = b.querySelector('.faq-arrow');
+          if (a) a.style.transform = 'rotate(0deg)';
+        }
+      });
+
+      if (isOpen) {
+        content.style.maxHeight = '0';
+        content.style.paddingTop = '0';
+        content.style.paddingBottom = '0';
+        arrow.style.transform = 'rotate(0deg)';
+        btn.setAttribute('aria-expanded', 'false');
+      } else {
+        content.style.maxHeight = inner.scrollHeight + 32 + 'px';
+        content.style.paddingTop = '';
+        content.style.paddingBottom = '';
+        arrow.style.transform = 'rotate(180deg)';
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    }
+  </script>
+</body>
+</html>
